@@ -28,6 +28,7 @@ async function run() {
 
     // collections
     const userCollection = client.db("GitFormedMinderDB").collection("users");
+    const repoCollection = client.db("GitFormedMinderDB").collection("repositories");
 
     // users
     app.get("/users",  async (req, res) => {
@@ -40,6 +41,18 @@ async function run() {
       const user = req.body;
       //console.log(user);
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+    // repositories
+    app.get("/repositories",  async (req, res) => {
+      const cursor = repoCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/repositories",  async (req, res) => {
+      const repositories = req.body;
+      const result = await repoCollection.insertOne(repositories);
       res.send(result);
     });
 
