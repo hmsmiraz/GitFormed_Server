@@ -27,11 +27,10 @@ async function run() {
 
     // collections
     const userCollection = client.db("GitFormedMinderDB").collection("users");
-    const repoCollection = client
-      .db("GitFormedMinderDB")
-      .collection("repositories");
+    const repoCollection = client.db("GitFormedMinderDB").collection("repositories");
+    const pullReqListCollection = client.db("GitFormedMinderDB").collection("pullReqList");
 
-    // users
+    // users api's
     app.get("/users", async (req, res) => {
       const cursor = userCollection.find();
       const users = await cursor.toArray();
@@ -44,7 +43,8 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
-    // repositories
+
+    // repositories api's
     app.get("/repositories", async (req, res) => {
       const cursor = repoCollection.find();
       const result = await cursor.toArray();
@@ -80,6 +80,31 @@ async function run() {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
         const result = await repoCollection.deleteOne(query);
+        res.send(result);
+      });
+
+      // pullReqList api's
+      app.get("/pullRequest", async (req, res) => {
+        const cursor = pullReqListCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+      });
+  
+      app.post("/pullRequest", async (req, res) => {
+        const repositories = req.body;
+        const result = await pullReqListCollection.insertOne(repositories);
+        res.send(result);
+      });
+      app.get("/pullRequest/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await pullReqListCollection.findOne(query);
+        res.send(result);
+      });
+      app.delete("/pullRequest/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await pullReqListCollection.deleteOne(query);
         res.send(result);
       });
 
