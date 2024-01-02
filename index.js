@@ -27,8 +27,15 @@ async function run() {
 
     // collections
     const userCollection = client.db("GitFormedMinderDB").collection("users");
-    const repoCollection = client.db("GitFormedMinderDB").collection("repositories");
-    const pullReqListCollection = client.db("GitFormedMinderDB").collection("pullReqList");
+    const repoCollection = client
+      .db("GitFormedMinderDB")
+      .collection("repositories");
+    const pullReqListCollection = client
+      .db("GitFormedMinderDB")
+      .collection("pullReqList");
+    const watchListCollection = client
+      .db("GitFormedMinderDB")
+      .collection("watchList");
 
     // users api's
     app.get("/users", async (req, res) => {
@@ -36,7 +43,6 @@ async function run() {
       const users = await cursor.toArray();
       res.send(users);
     });
-
     app.post("/users", async (req, res) => {
       const user = req.body;
       //console.log(user);
@@ -50,7 +56,6 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
     app.post("/repositories", async (req, res) => {
       const repositories = req.body;
       const result = await repoCollection.insertOne(repositories);
@@ -63,50 +68,82 @@ async function run() {
       res.send(result);
     });
     app.put("/repositories/:id", async (req, res) => {
-        const item = req.body;
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const updatedDoc = {
-          $set: {
-            Code: item.Code,
-            language: item.language,
-          },
-        };
-        const result = await repoCollection.updateOne(filter, updatedDoc);
-        res.send(result);
-      });
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          Code: item.Code,
+          language: item.language,
+        },
+      };
+      const result = await repoCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+    app.patch("/repositories/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $inc: { watching: +1 },
+      };
+      const result = await repoCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+    app.delete("/repositories/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await repoCollection.deleteOne(query);
+      res.send(result);
+    });
 
-      app.delete("/repositories/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await repoCollection.deleteOne(query);
-        res.send(result);
-      });
+    // WatchList Api's
+    app.get("/watchList", async (req, res) => {
+      const cursor = watchListCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    app.post("/watchList", async (req, res) => {
+      const watchList = req.body;
+      const result = await watchListCollection.insertOne(watchList);
+      res.send(result);
+    });
+    app.get("/watchList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await watchListCollection.findOne(query);
+      res.send(result);
+    });
+    app.delete("/watchList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await watchListCollection.deleteOne(query);
+      res.send(result);
+    });
 
-      // pullReqList api's
-      app.get("/pullRequest", async (req, res) => {
-        const cursor = pullReqListCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-      });
-  
-      app.post("/pullRequest", async (req, res) => {
-        const repositories = req.body;
-        const result = await pullReqListCollection.insertOne(repositories);
-        res.send(result);
-      });
-      app.get("/pullRequest/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await pullReqListCollection.findOne(query);
-        res.send(result);
-      });
-      app.delete("/pullRequest/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await pullReqListCollection.deleteOne(query);
-        res.send(result);
-      });
+    // pullReqList api's
+    app.get("/pullRequest", async (req, res) => {
+      const cursor = pullReqListCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/pullRequest", async (req, res) => {
+      const repositories = req.body;
+      const result = await pullReqListCollection.insertOne(repositories);
+      res.send(result);
+    });
+    app.get("/pullRequest/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await pullReqListCollection.findOne(query);
+      res.send(result);
+    });
+    app.delete("/pullRequest/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await pullReqListCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
